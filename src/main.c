@@ -80,7 +80,7 @@ BOOL isInBound(int x, int y) {
  * 算法：广度搜索 + Alpha-Beta 剪枝
  * 思路：维护一个真实棋盘状态的备份作为 root_board
  * Node 中存储从上一 Node 到当前 Node 棋盘状态的改变方式：从上往下，从左往右，
- * 第一个自己的棋子标记为 0，存储在 curren_command ，该棋子移动方式存储在 current_command
+ * 第一个自己的棋子标记为 0，存储在 current_command ，该棋子移动方式存储在 current_command
  * getSocre 判断局面，当前 getSocre 所需的棋盘状态从 root_board 逐层推出
  * 
  * 搜索树实现，剪枝，咕咕中
@@ -98,11 +98,6 @@ BOOL isInBound(int x, int y) {
 
 char root_board [BOARD_SIZE][BOARD_SIZE] = {0}; //copy of current "Board" which captured by "system"
 
-void resetRootBoard()
-{
-  memcpy(root_board,board,sizeof(char)*BOARD_SIZE*BOARD_SIZE);
-}
-
 /*
   ADT:Search Tree 
 */
@@ -112,6 +107,7 @@ typedef struct item
   char current_player;
   int score;
   char next_player_pieces;
+  BOOL is_root_node;
 }Item;
 
 typedef struct node
@@ -166,6 +162,7 @@ void initializeItem(Item *pitem, char current_player,char which_piece,char what_
   pitem->curren_command[0] = which_piece;
   pitem->curren_command[1] = what_command;
   pitem->current_player= current_player;
+  pitem->is_root_node=FALSE;
 }
 
 void findParent(Node* parent, Node* child)
@@ -186,6 +183,7 @@ BOOL addNode(Item item, Node *ptree)
     ptree->children[which_piece][what_command]=creatNode();
     findParent(ptree, children[which_piece][what_command]);
     copyItemToNode(item, ptree->children[which_piece][what_command]);
+    free(item);
   }
   return TRUE;
 }
@@ -207,7 +205,14 @@ void copyItemToNode(Item item, Node *pnode)
 /* 
   fuctions to operate root board
 */
-BOOL rootPlace(int x, int y, OPTION option, int cur_flag) {
+
+void resetRootBoard()
+{
+  memcpy(root_board,board,sizeof(char)*BOARD_SIZE*BOARD_SIZE);
+}
+
+BOOL rootPlace(int x, int y, OPTION option, int cur_flag) 
+{
   // 移动之前的位置没有我方棋子
   if (root_board[x][y] != cur_flag) {
     return FALSE;
@@ -271,6 +276,14 @@ void movePiece(Node *pnode)
       }
 }
 
+/* 
+  That's all functions to operate the root_board
+*/
+
+/* 
+  functions for judging and pruning
+*/
+
 int getScore (int current_player)
 {
   int score = 0;
@@ -280,11 +293,27 @@ int getScore (int current_player)
   return socre;
 }
 
+/* 
+  That's all fuctions for judging and pruning 
+*/
+
+/* 
+  BFS
+*/
+void breadthFirstSearch()
+{
+
+}
+/*
+  BFS end
+*/
+
 /**
  * 你可以在这里初始化你的AI
  */
 void initAI(int me) {
-
+  //new thread, keep searching
+  //new thread, output result
 }
 
 struct Command findValidPos(const char board[BOARD_SIZE][BOARD_SIZE], int flag) {

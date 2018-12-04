@@ -4,7 +4,7 @@ void InitializeTree(Node *pn)
 {
    pn->parent =NULL;
    pn->children =NULL;
-   pn->item->socre = -1;
+   pn->item->score = -1;
    pn->item->alpha=10;
    pn->item->beta=0;
 }

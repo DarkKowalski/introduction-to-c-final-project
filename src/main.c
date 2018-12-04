@@ -75,245 +75,17 @@ BOOL isInBound(int x, int y) {
  * 你的代码开始
  */
 
-/*
- * Kowalski Dark <darkkowalski2012@gmail.com> 2018-12-02
- * 算法：广度搜索 + Alpha-Beta 剪枝
- * 思路：维护一个真实棋盘状态的备份作为 root_board
- * Node 中存储从上一 Node 到当前 Node 棋盘状态的改变方式：从上往下，从左往右，
- * 第一个自己的棋子标记为 0，存储在 current_command ，该棋子移动方式存储在 current_command
- * getSocre 判断局面，当前 getSocre 所需的棋盘状态从 root_board 逐层推出
- * 
- * 搜索树实现，剪枝，咕咕中
- * getScore 待优化
- */
-
 /**
  * You can define your own struct and variable here
  * 你可以在这里定义你自己的结构体和变量
  */
 
-#define MAX_DEEPTH 4
-#define ALL_PIECES 16
-#define ALL_DIRECT 8
-
-char root_board [BOARD_SIZE][BOARD_SIZE] = {0}; //copy of current "Board" which captured by "system"
-
-/*
-  ADT:Search Tree 
-*/
-typedef struct item
-{
-  char current_command[2];
-  char current_player;
-  int score;
-  char next_player_pieces;
-  BOOL is_root_node;
-}Item;
-
-typedef struct node
-{
-  Item item;
-  char deepth;
-  char alpha;
-  char beta;
-  Node* parent;
-  Node* children[item.next_player_pieces][ALL_DIRECT];
-}Node;
-
-/* 
-  Functions of Search Tree
-*/
-
-void initializeTree(Node *ptree)
-{
-  *ptree = NULL;
-}
-
-Node* creatNode()
-{
-  Node *pnode = NULL;
-  pnode = (Node*)malloc(sizeof(Node));
-  if(pnode == NULL)
-  {
-    debug("creatNode: Malloc Error!");
-    return NULL;
-  }
-
-  pnode->parent = NULL;
-  pnode->children = NULL;
-
-  return pnode;
-}
-
-Item* creatItem()
-{
-  Item *pitem=NULL;
-  pitem = (Item*)malloc(sizeof(Item));
-  if(pitem == NULL)
-  {
-    debug("creatItem: Malloc Error!");
-    retunr NULL;
-  }
-  retun pitem;
-}
-
-void initializeItem(Item *pitem, char current_player,char which_piece,char what_command)
-{
-  pitem->curren_command[0] = which_piece;
-  pitem->curren_command[1] = what_command;
-  pitem->current_player= current_player;
-  pitem->is_root_node=FALSE;
-}
-
-void findParent(Node* parent, Node* child)
-{
-  child->parent = &parent;
-}
-
-BOOL addNode(Item item, Node *ptree)
-{
-  char which_piece=item.current_command[0];
-  char what_command=iten.curren_command[1];
-  if(ptree->children)
-  {
-    return FALSE;
-  }
-  else
-  {
-    ptree->children[which_piece][what_command]=creatNode();
-    findParent(ptree, children[which_piece][what_command]);
-    copyItemToNode(item, ptree->children[which_piece][what_command]);
-    free(item);
-  }
-  return TRUE;
-}
-
-void emptyNode(Node *ptree)
-{
-  //TODO: release memory
-}
-
-void copyItemToNode(Item item, Node *pnode)
-{
-    pnode->item = item;
-}
-
-/* 
-  That's all functions of Search Tree
-*/
-
-/* 
-  fuctions to operate root board
-*/
-
-void resetRootBoard()
-{
-  memcpy(root_board,board,sizeof(char)*BOARD_SIZE*BOARD_SIZE);
-}
-
-BOOL rootPlace(int x, int y, OPTION option, int cur_flag) 
-{
-  // 移动之前的位置没有我方棋子
-  if (root_board[x][y] != cur_flag) {
-    return FALSE;
-  }
-
-  int new_x = x + DIR[option][0];
-  int new_y = y + DIR[option][1];
-  // 移动之后的位置超出边界, 或者不是空地
-  if (!isInBound(new_x, new_y) || root_board[new_x][new_y] != EMPTY) {
-    return FALSE;
-  }
-
-  root_board[x][y] = EMPTY;
-  root_board[new_x][new_y] = cur_flag;
-
-  int cur_other_flag = 3 - cur_flag;
-
-  // 挑
-  int intervention_dir[4][2] = { {1, 0}, {0, 1}, {1, 1}, {1, -1} };
-  for (int i = 0; i < 4; i++) {
-    int x1 = new_x + intervention_dir[i][0];
-    int y1 = new_y + intervention_dir[i][1];
-    int x2 = new_x - intervention_dir[i][0];
-    int y2 = new_y - intervention_dir[i][1];
-    if (isInBound(x1, y1) && isInBound(x2, y2) && root_board[x1][y1] == cur_other_flag && root_board[x2][y2] == cur_other_flag) {
-      root_board[x1][y1] = cur_flag;
-      root_board[x2][y2] = cur_flag;
-    }
-  }
-
-  // 夹
-  int custodian_dir[8][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
-  for (int i = 0; i < 8; i++) {
-    int x1 = new_x + custodian_dir[i][0];
-    int y1 = new_y + custodian_dir[i][1];
-    int x2 = new_x + custodian_dir[i][0] * 2;
-    int y2 = new_y + custodian_dir[i][1] * 2;
-    if (isInBound(x1, y1) && isInBound(x2, y2) && root_board[x2][y2] == cur_flag && root_board[x1][y1] == cur_other_flag) {
-      root_board[x1][y1] = cur_flag;
-    }
-  }
-
-  return TRUE;
-}
-
-
-void movePiece(Node *pnode)
-{
-  int count = (int)((pnode->item->current_command[0]);
-  char player = pnode->item->current_player;
-  for(int row =0 ;row<BOARD_SIZE;row++)
-    for(int col =0 ;col<BOARD_SIZE;col++)
-      if(root_board[row][col]==player)
-      {
-        if(!(count>0))
-          //target piece
-          //move target piece and change table status
-          rootPlace(col, row, current_command[1], pnode->item->current_player);
-        else
-          count--;
-      }
-}
-
-/* 
-  That's all functions to operate the root_board
-*/
-
-/* 
-  functions for judging and pruning
-*/
-
-int getScore (int current_player)
-{
-  int score = 0;
-  for(int row = 0; row < 0 ; row ++)
-    for(int col = 0; col < 0; col++)
-        score += (root_board[row][col] == current_player?1:0);
-  return socre;
-}
-
-/* 
-  That's all fuctions for judging and pruning 
-*/
-
-/* 
-  BFS
-*/
-void breadthFirstSearch()
-{
-
-}
-/*
-  BFS end
-*/
 
 /**
  * 你可以在这里初始化你的AI
  */
 void initAI(int me) {
-  //new thread, keep searching
-  //new thread, output result
+
 }
 
 struct Command findValidPos(const char board[BOARD_SIZE][BOARD_SIZE], int flag) {
@@ -350,9 +122,7 @@ struct Command aiTurn(const char board[BOARD_SIZE][BOARD_SIZE], int me) {
    * TODO：在这里写下你的AI。
    * 这里有一个示例AI，它只会寻找第一个可下的位置进行落子。
    */
- // struct Command preferedPos = findValidPos(board, me);
-
-  
+  struct Command preferedPos = findValidPos(board, me);
 
   return preferedPos;
 }

@@ -28,6 +28,7 @@ void AddChildren(int color,Node *pn)
                         AddNode(pn,new_node);
                         //add new_node to BFS Queue
                         EnQueue(new_node,bfs_queue);
+                        piece_num++;
                     }
                 }
             }

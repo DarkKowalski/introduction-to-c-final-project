@@ -4,8 +4,6 @@ Queue bfs_queue;
 
 void AddChildren(int color,Node *pn)
 {
-    char piece=0;
-    char command=0;
     int alpha=pn->item-alpha;
     int beta=pn->item->beta;
 

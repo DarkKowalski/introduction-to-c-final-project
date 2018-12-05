@@ -57,7 +57,7 @@ void BreadthFirstSearch(Node* pn,int color)
     ResetRootBoard();
 }
 
-void GenerateBoard(Node *pn)
+bool GenerateBoard(Node *pn)
 {
     Node *pos=NULL;
     while(pn->parent)
@@ -66,5 +66,6 @@ void GenerateBoard(Node *pn)
         GenerateBoard(pos);
     }
     MovePiece(pn);
+    return true;
 }
 

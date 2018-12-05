@@ -74,7 +74,8 @@ BOOL isInBound(int x, int y) {
  * YOUR CODE BEGIN
  * 你的代码开始
  */
-
+#include "queue.h"
+#include "trietree.h"
 /**
  * You can define your own struct and variable here
  * 你可以在这里定义你自己的结构体和变量

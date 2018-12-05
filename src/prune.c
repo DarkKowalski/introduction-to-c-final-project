@@ -50,10 +50,12 @@ void GetWeight(Node* pn,int color)
 
     float score_sum=0;
     int valid_node=0;
+    int next_color=((color==BLACK)?WHITE:BLACK);
 
     DeQueue(p_qnode,p_bfsq);
+    AddChildren(next_color,p_qnode->item);
 
-    if(GenerateBoard(p_qnode))   //get this board status
+    if(GenerateBoard(p_qnode->qitem))   //get this board status
     {
         p_qnode->qitem->item->score = GetBoardSocre(color);
         score_sum+=(p_qnode->qitem->item->score);

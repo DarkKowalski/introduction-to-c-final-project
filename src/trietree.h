@@ -25,7 +25,7 @@ Node* current_operate=NULL;
  
 void InitializeTree(Node *pn,int me);
 Node* CreatNode(int color,char piece,char command,int alpha,int beta);
-void AddNode(Node* parent, Node* child) 
+void AddNode(Node* parent, Node* child);
 void EmptySubtree(Node *pn);
 Node* ChangeRootNode(Node* current, Node* new);
 

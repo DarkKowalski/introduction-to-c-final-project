@@ -2,7 +2,7 @@
 #define _QUEUE_H_
 #include <stdbool.h>
 
-typedef intptr_t QItem;
+typedef void* QItem;
 
 #define MAXQUEUE 1000
 

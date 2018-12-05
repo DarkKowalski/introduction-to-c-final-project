@@ -11,7 +11,7 @@ bool RootPlace(int x, int y, OPTION option, int cur_flag)
         return false;
     }
 
-  int newt_x = x + DIR[option][0];
+  int new_x = x + DIR[option][0];
   int new_y = y + DIR[option][1];
   // 移动之后的位置超出边界, 或者不是空地
   if (!isInBound(new_x, new_y) || root_board[new_x][new_y] != EMPTY) 

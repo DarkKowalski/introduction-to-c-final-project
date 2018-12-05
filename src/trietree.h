@@ -8,7 +8,7 @@ typedef struct item
     int color;
     char piece;
     char command;
-    int score;
+    float score;
     int alpha;
     int beta;
 }Item;

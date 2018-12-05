@@ -43,16 +43,28 @@ int GetBoardSocre(int color)
   return socre;
 }
 
-void BreadthFirstSearch(Node* pn,int color)
+void GetWeight(Node* pn,int color)
 {   
     QNode *p_qnode=NULL;
     Queue *p_bfsq=bfs_queue;
+
+    float score_sum=0;
+    int valid_node=0;
+
     DeQueue(p_qnode,p_bfsq);
-    if(GenerateBoard());//get this board status
+
+    if(GenerateBoard(p_qnode))   //get this board status
+    {
         p_qnode->qitem->item->score = GetBoardSocre(color);
+        score_sum+=(p_qnode->qitem->item->score);
+        valid_node++;
+    }
     else
-        p_qnode->qitem->item->score =0;
+        p_qnode->qitem->item->score =-1;
     ResetRootBoard();
+
+    pn->item->score=(score_sum/valid_node);
+
 }
 
 bool GenerateBoard(Node *pn)

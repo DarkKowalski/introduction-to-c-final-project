@@ -11,7 +11,7 @@ bool RootPlace(int x, int y, OPTION option, int cur_flag)
         return false;
     }
 
-  int new_x = x + DIR[option][0];
+  int newt_x = x + DIR[option][0];
   int new_y = y + DIR[option][1];
   // 移动之后的位置超出边界, 或者不是空地
   if (!isInBound(new_x, new_y) || root_board[new_x][new_y] != EMPTY) 
@@ -56,28 +56,28 @@ bool RootPlace(int x, int y, OPTION option, int cur_flag)
 }
 
 
-void MovePiece(Node *pnode)
+bool MovePiece(Node *pnode)
 {
-  int count = (int)((pnode->item->piece);
-  char color = pnode->item->color;
-  for(int row =0 ;row<BOARD_SIZE;row++)
-    for(int col =0 ;col<BOARD_SIZE;col++)
-      if(root_board[row][col]==color)
-      {
-        if(!(count>0))
-            //target piece
-            //move target piece and change table status
-            RootPlace(col, row, command, pnode->item->color);
-        else
-          count--;
-      }
-}
-
-int GetBoardSocre(char color)
-{
-    int score = 0;
-    for(int row = 0; row < 0 ; row ++)
-        for(int col = 0; col < 0; col++)
-            score += (root_board[row][col] == color?1:0);
-  return socre;
+    int count = (int)((pnode->item->piece);
+    char color = pnode->item->color;
+    for(int row =0 ;row<BOARD_SIZE;row++)
+    {
+        for(int col =0 ;col<BOARD_SIZE;col++)
+        {
+            if(root_board[row][col]==color)
+            {
+                if(!(count>0))
+                {
+                    //target piece
+                    //move target piece and change table status
+                    return (RootPlace(col, row, command, pnode->item->color));
+                 }
+            }
+            else
+            {
+                count--;
+            }
+        }
+    }
+      
 }

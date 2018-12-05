@@ -2,12 +2,12 @@
 #define _QUEUE_H_
 #include <stdbool.h>
 
-typedef intptr_t Item;
+typedef intptr_t QItem;
 
 #define MAXQUEUE 1000
 
 typedef struct qnode{
-    Item item;
+    QItem qitem;
     struct qnode *next;
 }QNode;
 
@@ -20,8 +20,8 @@ typedef struct queue{
 void InitializeQueue(Queue *pq);
 bool QueueIsFull(const Queue *pq);
 int QueueItemCount(const Queue *pq);
-bool EnQueue(Item item, Queue *pq);
-bool DeQueue(Item *pitem, Queue *pq);
+bool EnQueue(QItem item, Queue *pq);
+bool DeQueue(QItem *pitem, Queue *pq);
 void EmptyTheQueue(Queue *pq);
 
 #endif

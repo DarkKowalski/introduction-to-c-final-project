@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include "queue.h"
 
-static void CopyToNode (Item item, QNode *pn);
-static void CopyToItem (QNode *pn,Item *pi);
+static void CopyToNode (QItem item, QNode *pn);
+static void CopyToItem (QNode *pn,QItem *pi);
 
 void InitializeQueue(Queue *pq)
 {
@@ -26,7 +26,7 @@ int QueueItemCount(const Queue *pq)
     return pq ->items;
 }
 
-bool EnQueue(Item item, Queue *pq)
+bool EnQueue(QItem item, Queue *pq)
 {
     QNode *pnew;
 
@@ -49,7 +49,7 @@ bool EnQueue(Item item, Queue *pq)
     return true;
 }
 
-bool DeQueue(Item *pitem, Queue *pq)
+bool DeQueue(QItem *pitem, Queue *pq)
 {
     QNode *pt;
 
@@ -62,22 +62,24 @@ bool DeQueue(Item *pitem, Queue *pq)
     pq->items--;
     if(pq->items == 0)
         pq->rear =NULL;
+    if((pq->rear)==NULL) //auto destory the queue when it's empty
+        pq=NULL;
     return true;    
 }
 
 void EmptyTheQueue(Queue *pq)
 {
-    Item dummy;
+    QItem dummy;
     while(!QueueIsEmpty(pq))
         DeQueue(&dummy,pq);
 }
 
-static void CopyToNode(Item item, QNode *pn)
+static void CopyToNode(QItem item, QNode *pn)
 {
     pn->item = item;
 }
 
-static void CopyToItem(QNode *pn, Item *pi)
+static void CopyToItem(QNode *pn, QItem *pi)
 {
     *pi = pn->item;
 }

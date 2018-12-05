@@ -16,7 +16,7 @@ typedef struct item
 typedef struct node
 {
     Item item;
-    Node* parent;
+    struct node *parent;
     Queue* chilrend;
 }Node;
 

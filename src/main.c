@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 // board information
 #define BOARD_SIZE 12
 #define EMPTY 0
@@ -53,8 +52,10 @@ void debug(const char *str)
 	fflush(stdout);
 }
 
-void printBoard() {
+void printBoard() 
+{
 	char visual_board[BOARD_SIZE][BOARD_SIZE] = { 0 };
+
 	for (int i = 0; i < BOARD_SIZE; i++) 
 	{
 		for (int j = 0; j < BOARD_SIZE; j++) 
@@ -86,7 +87,8 @@ void printBoard() {
 	}
 }
 
-static inline BOOL isInBound(int x, int y) {
+static inline BOOL isInBound(int x, int y) 
+{
 	return x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE;
 }
 
@@ -100,22 +102,25 @@ static inline BOOL isInBound(int x, int y) {
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-#define ALLCMD 8
-#define ALLDIR 8
+#define ALLCMD 8				// total number of commands
+#define ALLDIR 8				// total number of directions
 
-#define INFINITY 114514
+#undef INFINITY
+#define INFINITY 1145141919
 
-#define BOOTALPHA -114514
-#define BOOTBETA 114514
+#define BOOTALPHA -INFINITY		// initial alpha for alpha-beta pruning
+#define BOOTBETA INFINITY		// initial beta for alpha-beta pruning
+
+#define ENEMY_SURROUND 2        // number of enemy pieces which is greater or equal to this value will trigger FUNCTION: enemyPiecesSurround
 
 #define PIECE_WEIGHT 1000
 #define BAD_FORM_WEIGHT 500      // increase this value to enhance Defensiveness
-#define GOOD_FORM_WEIGHT 100       // increase this value to enhance Aggression
-#define DISTANCE_WEIGHT 1         // increase this value to enhance Defensiveness
+#define GOOD_FORM_WEIGHT 100     // increase this value to enhance Aggression
+#define DISTANCE_WEIGHT 1        // increase this value to enhance Defensiveness
 #define SURROUND_WEIGHT 1        // increase this value to enhance Aggression
 
-#define MAXDEPTH 4
-#define FIRST_STEP_LIMIT 20
+#define MAXDEPTH 4				// maximum depth for DFS
+#define FIRST_STEP_LIMIT 20		// initial width limit for DFS
 
 typedef struct ChildBoard
 {
@@ -135,9 +140,9 @@ typedef struct ShallowBoard
 
 static int history_table[BOARD_SIZE][BOARD_SIZE][ALLCMD] = { 0 };
 
-int getDistance(const char node_board[BOARD_SIZE][BOARD_SIZE],int x, int y) // measure distance to nearest enemy piece
+int getDistance(const char node_board[BOARD_SIZE][BOARD_SIZE],int x, int y) // measure distance to the nearest enemy piece
 {
-	int distance = 1;//Chebyshev distance: https://en.wikipedia.org/wiki/Chebyshev_distance
+	int distance = 1; // Chebyshev distance: https://en.wikipedia.org/wiki/Chebyshev_distance
 	int scan_x, scan_y;
 
 	for (distance = 1; distance < BOARD_SIZE; distance++) 
@@ -221,7 +226,7 @@ bool enemyPiecesSurround (const char node_board[BOARD_SIZE][BOARD_SIZE], int x, 
 		if (node_board[scan_x][scan_y] == other_flag)
 		{
 			enemy_pieces++; 
-			if (enemy_pieces == 2) // there are 2 enemy pieces
+			if (enemy_pieces == ENEMY_SURROUND)
 			{
 				return true;
 			}
@@ -276,7 +281,7 @@ int getScore(char node_board[BOARD_SIZE][BOARD_SIZE])
 							int test_form_y = test_empty_y + DIR[scan_empty_dir][1];
 							if (node_board[test_form_x][test_form_y] == other_flag)
 							{
-								bad_form_case++;
+								bad_form_case++; // lose my pieces in next turn
 								break;
 							}
 						}
@@ -293,7 +298,7 @@ int getScore(char node_board[BOARD_SIZE][BOARD_SIZE])
 							int test_form_y = test_empty_y + DIR[scan_dir_2][1];
 							if (node_board[test_form_x][test_form_y] == me_flag)
 							{
-								good_form_case++;
+								good_form_case++; // get new pieces in next turn
 								break;
 							}
 						}
@@ -365,12 +370,12 @@ bool placeInNodeBoard (char(*node_board)[BOARD_SIZE], int x, int y, int option, 
 	return true;
 }
 
-int highHistoryScore(const void * a, const void * b)
+int highHistoryScore(const void *a, const void *b)
 {
 	return ((Child*)b)->history_score - ((Child*)a)->history_score;
 }
 
-int highShallowScore(const void * a, const void * b)
+int highShallowScore(const void *a, const void *b)
 {
 	return ((Sboard*)b)->score - ((Sboard*)a)->score ;
 }
@@ -393,24 +398,27 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 	if (player == me_flag)
 	{
 		score = -INFINITY;
-		for (int row = 0; row <BOARD_SIZE; row++)
+
+		// generate all possible moves and save them in local array child_board
+		for (int x = 0; x <BOARD_SIZE; x++)
 		{
-			for (int col = 0; col<BOARD_SIZE; col++)
+			for (int y = 0; y<BOARD_SIZE; y++)
 			{
-				if (board_operate[row][col] == me_flag)
+				if (board_operate[x][y] == me_flag)
 				{
 					for (int cmd = 0; cmd<ALLCMD; cmd++)
 					{
 						memcpy(board_operate, node_board, sizeof(char)*BOARD_SIZE*BOARD_SIZE);
 						bool move_success = false;
-						move_success = placeInNodeBoard(board_operate, row, col, cmd, me_flag);
+						move_success = placeInNodeBoard(board_operate, x, y, cmd, me_flag);
 
 						if (move_success)
 						{
-							(child_board[child_offset]).x = row;
-							(child_board[child_offset]).y = col;
+							// saved status
+							(child_board[child_offset]).x = x;
+							(child_board[child_offset]).y = y;
 							(child_board[child_offset]).cmd = cmd;
-							(child_board[child_offset]).history_score = history_table[row][col][cmd];
+							(child_board[child_offset]).history_score = history_table[x][y][cmd];
 							child_offset++;
 						}
 					}
@@ -418,6 +426,7 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 			}
 		}
 
+		// sort nodes by history_score, from high to low
 		qsort(child_board, 16 * ALLCMD, sizeof(Child), highHistoryScore);
 
 		for (int i = 0; i<child_offset; i++)
@@ -431,6 +440,7 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 
 			if (prune_beta <= prune_alpha)
 			{
+				// trigger pruning and increase history_score
 				history_table[child_board[i].x][child_board[i].y][child_board[i].cmd] += pow(2, MAXDEPTH - depth);
 				return score;
 			}
@@ -441,24 +451,27 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 	else
 	{
 		score = +INFINITY;
-		for (int row = 0; row <BOARD_SIZE; row++)
+
+		// generate all possible moves and save them in local array child_board
+		for (int x = 0; x <BOARD_SIZE; x++)
 		{
-			for (int col = 0; col<BOARD_SIZE; col++)
+			for (int y = 0; y<BOARD_SIZE; y++)
 			{
-				if (board_operate[row][col] == other_flag)
+				if (board_operate[x][y] == other_flag)
 				{
 					for (int cmd = 0; cmd<ALLCMD; cmd++)
 					{
 						memcpy(board_operate, node_board, sizeof(char)*BOARD_SIZE*BOARD_SIZE);
 						bool move_success = false;
-						move_success = placeInNodeBoard(board_operate, row, col, cmd, other_flag);
+						move_success = placeInNodeBoard(board_operate, x, y, cmd, other_flag);
 
 						if (move_success)
 						{
-							(child_board[child_offset]).x = row;
-							(child_board[child_offset]).y = col;
+							// saved status
+							(child_board[child_offset]).x = x;
+							(child_board[child_offset]).y = y;
 							(child_board[child_offset]).cmd = cmd;
-							(child_board[child_offset]).history_score = history_table[row][col][cmd];
+							(child_board[child_offset]).history_score = history_table[x][y][cmd];
 							child_offset++;
 						}
 					}
@@ -466,6 +479,7 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 			}
 		}
 
+		// sort nodes by history_score, from high to low
 		qsort(child_board, 16 * ALLCMD, sizeof(Child), highHistoryScore);
 
 		for (int i = 0; i< child_offset - 1; i++)
@@ -479,6 +493,7 @@ int alphaBeta(const char node_board[][BOARD_SIZE], int depth, int prune_alpha, i
 
 			if (prune_beta <= prune_alpha)
 			{
+				// trigger pruning and increase history_score
 				history_table[child_board[i].x][child_board[i].y][child_board[i].cmd] += pow(2, MAXDEPTH - depth);
 				return score;
 			}
@@ -508,22 +523,22 @@ struct Command findValidPos(const char board[][BOARD_SIZE], int flag)
 	Sboard child_board[16 * ALLCMD] = { 0 };
 	int child_offset = 0;
 
-	for (int row = 0; row <BOARD_SIZE; row++)
+	for (int x = 0; x <BOARD_SIZE; x++)
 	{
-		for (int col = 0; col<BOARD_SIZE; col++)
+		for (int y = 0; y<BOARD_SIZE; y++)
 		{
-			if (node_board[row][col] == me_flag)
+			if (node_board[x][y] == me_flag)
 			{
 				for (int cmd = 0; cmd<ALLCMD; cmd++)
 				{
 					memcpy(node_board, board, sizeof(char)*BOARD_SIZE*BOARD_SIZE);
 					bool move_success = false;
-					move_success = placeInNodeBoard(node_board, row, col, cmd, me_flag);
+					move_success = placeInNodeBoard(node_board, x, y, cmd, me_flag);
 
 					if (move_success)
 					{
-						(child_board[child_offset]).x = row;
-						(child_board[child_offset]).y = col;
+						(child_board[child_offset]).x = x;
+						(child_board[child_offset]).y = y;
 						(child_board[child_offset]).cmd = cmd;
 						(child_board[child_offset]).score = getScore(node_board); 
 						child_offset++;
@@ -536,7 +551,7 @@ struct Command findValidPos(const char board[][BOARD_SIZE], int flag)
 	qsort(child_board, 16 * ALLCMD, sizeof(Child), highShallowScore);
 
 	int limit = MIN(FIRST_STEP_LIMIT, child_offset);
-	for (int i = 0; i<limit; i++)
+	for (int i = 0; i < limit; i++)
 	{
 		memcpy(node_board, board, sizeof(char)*BOARD_SIZE*BOARD_SIZE);
 		placeInNodeBoard(node_board, child_board->x, child_board->y, child_board->cmd, me_flag);
